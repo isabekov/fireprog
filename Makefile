@@ -1,13 +1,13 @@
-GCC           = gcc -I.
+GCC           = g++ -I.
 DEFINES       =
-CPPFLAGS      = -g -Wall -O2
+CPPFLAGS      = -g -Wall -O2 -Wnarrowing  -std=c++11
 INCPATH       = 
-LINK          = g++ -static
+LINK          = g++
 LFLAGS        = -g -O2
 LIBS          = -L. -lftdi -lusb
 
-fpgaprog: butterfly.o jtag.o iobase.o ioftdi.o bitfile.o tools.o devicedb.o progalgspi.o progalgxc3s.o
-	$(LINK) $^ -o $@ $(LIBS)
+fireprog: butterfly.o jtag.o iobase.o ioftdi.o bitfile.o tools.o devicedb.o progalgspi.o progalgxc3s.o
+	$(LINK) $(LIBS) $^ -o $@
 
 butterfly.o: butterfly.cpp io_exception.h jtag.h ioftdi.h devicedb.h progalgxc3s.h progalgspi.h bitfile.h
 	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o butterfly.o butterfly.cpp
@@ -37,4 +37,4 @@ progalgspi.o: progalgspi.cpp progalgspi.h config.h
 	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o progalgspi.o progalgspi.cpp
 
 clean:
-	rm -rf *.o *.exe
+	rm -rf *.o fireprog
