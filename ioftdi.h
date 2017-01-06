@@ -34,7 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
 #include "iobase.h"
 
 #define VENDOR 0x0403
-#define DEVICE 0x6010
+#define DEVICE 0x6014
 
 #define FTDI_NO_EN 0
 #define FTDI_IKDA  1

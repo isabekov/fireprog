@@ -327,10 +327,10 @@ int main(int argc, char **argv)
                 if(append_str && !append_data(flash_bit, append_str,append_flip, verbose)) /* Try to append data */
                     return 1;
                 
-                if(verbose)
-                  printf("\nProgramming External Flash Memory with \"%s\".\n", cFpga_fn);
+                //if(verbose)
+                printf("Programming External Flash Memory with \"%s\".\n", cFpga_fn);
                 result=alg1.ProgramSpi(flash_bit, spi_options);
-                if (reconfigure)
+	            if (reconfigure)
                 {
                   alg.Reconfigure();
                 }

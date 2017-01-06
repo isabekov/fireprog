@@ -195,6 +195,7 @@ bool ProgAlgSpi::Spi_Identify(bool verbose)
       if(verbose)
         printf("Found Atmel Flash (Pages=%d, Page Size=%d bytes, %d bits).\n",Pages,PageSize,Pages*PageSize*8);
       break;
+
     case 0xc2: /* Macronix */
       switch(tdo[3])
       {
@@ -210,6 +211,7 @@ bool ProgAlgSpi::Spi_Identify(bool verbose)
       if(verbose)
         printf("Found Macronix Flash (Pages=%d, Page Size=%d bytes, %d bits).\n",Pages,PageSize,Pages*PageSize*8);
       break; 
+
     case 0x20: /* Numonyx/Micron */
       if (tdo[2] == 0xBA)
       { //N25QXXX
@@ -251,12 +253,41 @@ bool ProgAlgSpi::Spi_Identify(bool verbose)
           printf("Found Numonyx/Micron Flash (Pages=%d, Page Size=%d bytes, %d bits).\n",Pages,PageSize,Pages*PageSize*8);
         break;
       } 
-      else
+      else if (tdo[2] == 0x80)
+      { //M25PE
+        switch(tdo[3])
+        {
+          case 0x11: /* M25PE10 */
+            Pages=512;
+            PageSize=256;
+            BulkErase=60;
+            SectorErase=3;
+            FlashType=GENERIC;
+            printf("-----------------------------------------------------------------\n");
+            printf("Found Numonyx/Micron Flash M25PE10, JEDEC identifier: [0x%02X%02X%02X].\n",tdo[1],tdo[2],tdo[3]);
+            break;
+          case 0x12: /* M25PE20 */
+            Pages=1024;
+            PageSize=256;
+            BulkErase=250;
+            SectorErase=3;
+            FlashType=GENERIC;
+            printf("Found Numonyx/Micron Flash M25PE20, JEDEC identifier: [0x%02X%02X%02X].\n",tdo[1],tdo[2],tdo[3]);
+            break;
+          default:
+            printf("Unknown Numonyx/Micron N25Q Flash Size (0x%.2x)\n", tdo[3]);
+            return false;
+        }
+        if(verbose)
+          printf("Flash properties: (Pages=%d, Page Size=%d bytes, %d bits).\n",Pages,PageSize,Pages*PageSize*8);
+        break;
+      } else
       {
         printf("Unknown Numonyx/Micron Flash Type (0x%.2x)\n", tdo[2]);
         return false;
       }
       break;
+
     case 0xef: /* Winbond */
       if (tdo[2] == 0x30)
       { //W25X
@@ -345,7 +376,7 @@ bool ProgAlgSpi::Spi_Identify(bool verbose)
         printf("Found SST Flash (Pages=%d, Page Size=%d bytes, %d bits).\n",Pages,PageSize,Pages*PageSize*8);
       break;      
     default:
-      printf("Uknown Flash Manufacturer (0x%.2x)\n", tdo[1]);
+      printf("Unknown Flash Manufacturer (0x%.2x) and model (0x%.2x) (0x%.2x) \n", tdo[1], tdo[2], tdo[3]);
       return false;
   }
 
