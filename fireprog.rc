@@ -1,0 +1,47 @@
+#ifndef RT_MANIFEST
+#define RT_MANIFEST 24
+#endif
+
+#ifndef CREATEPROCESS_MANIFEST_RESOURCE_ID
+#define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
+#endif
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "fireprog.manifest"
+
+#define VS_VERSION_INFO    1
+#define VOS__WINDOWS32     0x00000004
+#define VFT_APP            0x00000001  /* File contains application */
+#define VS_FF_SPECIALBUILD 0x00000020
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     1,0,0,0
+FILEOS         	VOS__WINDOWS32
+FILETYPE       	VFT_APP
+FILEFLAGS       VS_FF_SPECIALBUILD
+PRODUCTVERSION  1,0,0,0
+
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Koç University"
+      VALUE "FileDescription", "A utility to program Prometheus boards"
+      VALUE "FileVersion", "1.0"
+      VALUE "InternalName", "Prometheus"
+      VALUE "LegalCopyright", "Altynbek Isabekov, Onurhan Öztürk"
+      VALUE "OriginalFilename", "fireprog.exe"
+      VALUE "ProductName", "Prometheus"
+      VALUE "ProductVersion", "1.0"
+	  VALUE "SpecialBuild", "Added support for M25PE10 SPI flash memory"
+	  VALUE "Comments", """fireprog.exe"" is based on Papilio programmer"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+	/* 0x0409: English (U.S.), 0x04B0: Unicode charset, 0x04E4: Multilingual */
+    VALUE "Translation", 0x0409, 0x04B0
+  END
+
+END
