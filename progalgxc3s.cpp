@@ -130,6 +130,7 @@ void ProgAlgXC3S::flow_program_legacy(BitFile &file)
     }
 
 }
+
 void ProgAlgXC3S::array_program(BitFile &file)
 {
   unsigned char buf[1] = {0};
@@ -143,28 +144,6 @@ void ProgAlgXC3S::array_program(BitFile &file)
   do
     jtag->shiftIR(&CFG_IN, buf);
   while (! (buf[0] & 0x10)); /* wait until configuration cleared */
-  switch(family)
-    {
-    case 0x11: /* XC3SA*/
-    case 0x13: /* XC3SAN*/
-    case 0x1c: /* SC3SADSP*/
-    case 0x20: /* XC6S*/
-      {
-	byte data[8];
-	jtag->shiftIR(&ISC_ENABLE);
-	jtag->shiftIR(&ISC_DNA);
-	jtag->shiftDR(0, data, 64);
-	io->cycleTCK(1);
-	if (*(long*)data != -1L)
-	  /* ISC_DNA only works on a unconfigured device, see AR #29977*/
-    if (io->getVerbose())
-  	  printf("DNA is 0x%02x%02x%02x%02x%02x%02x%02x%02x\n",
-		  data[0], data[1], data[2], data[3],
-		  data[4], data[5], data[6], data[7]);
-	break;
-      }
-    }
-
   /* use leagcy, if large transfers are faster then chunks */
   flow_program_legacy(file);
   /*flow_array_program(file);*/
@@ -326,4 +305,53 @@ CRC_ERROR 0 CRC error
     jtag->shiftIR(&BYPASS);
     io->cycleTCK(12);
 
+}
+/* Function to reverse bits of num */
+unsigned long int ProgAlgXC3S::reverse_bits_recursively(unsigned long int num, unsigned int numBits)
+{
+    unsigned long int reversedNum;
+    unsigned long int mask = 0;
+
+    mask = (0x1 << (numBits/2)) - 1;
+
+    if (numBits == 1) return num;
+    reversedNum = ProgAlgXC3S::reverse_bits_recursively(num >> numBits/2, numBits/2) |
+                              ProgAlgXC3S::reverse_bits_recursively((num & mask), numBits/2) << numBits/2;
+    return reversedNum;
+}
+
+void ProgAlgXC3S::Read_DNA()
+{
+  unsigned char buf[1] = {0};
+   /* JPROGAM: Trigerr reconfiguration, not explained in ug332, but
+     DS099 Figure 28:  Boundary-Scan Configuration Flow Diagram (p.49) */
+  jtag->shiftIR(&JPROGRAM);
+
+  do
+    jtag->shiftIR(&CFG_IN, buf);
+  while (! (buf[0] & 0x10)); /* wait until configuration cleared */
+  switch(family)
+    {
+    case 0x11: /* XC3SA*/
+    case 0x13: /* XC3SAN*/
+    case 0x1c: /* SC3SADSP*/
+    case 0x20: /* XC6S*/
+      {
+	byte data[8];
+	jtag->shiftIR(&ISC_ENABLE);
+	jtag->shiftIR(&ISC_DNA);
+	jtag->shiftDR(0, data, 64);
+	io->cycleTCK(1);
+    /* Out of 64 bits, only 57 are used to store DNA. Erase remaining 7 bits. */
+	data[7] = data[7] &  0x01;
+    /* DNA will be stored as unsigned long integer (64 bits) */
+	unsigned long int DNA = 0;
+	for(int i=0; i<64/8; i++){
+		DNA = DNA | ProgAlgXC3S::reverse_bits_recursively((unsigned long int) data[7-i], 8) << 8*i;
+	}
+	/* Shift by 7 bits right, so that DNA is aligned. */
+	printf("DNA = 0x%lx\n", DNA>>7);
+	break;
+      }
+    }
 }

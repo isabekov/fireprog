@@ -93,6 +93,7 @@ void usage(char *name)
       "   -h\t\t\tprint this help\n"
       "   -v\t\t\tverbose output\n"
       "   -j\t\t\tDetect JTAG chain, nothing else\n"
+      "   -u\t\t\tRead device DNA, nothing else\n"
       "   -d\t\t\tFTDI device name\n"
       "   -f <bitfile>\t\tMain bit file\n"
       "   -b <bitfile>\t\tbscan_spi bit file (enables spi access via JTAG)\n"
@@ -149,6 +150,7 @@ int main(int argc, char **argv)
     bool spiflash = false;
     bool reconfigure = false;
     bool detectchain = false;
+    bool read_dna = false;
     int displaystatus = 0; // 0=no status, 1=JTAG IR data, 2=STAT Register readback
     bool result;
     char *desc = 0;
@@ -166,7 +168,7 @@ int main(int argc, char **argv)
     std::auto_ptr<IOBase>  io;
 
 
-    while ((c = getopt (argc, argv, "hd:b:f:s:A:a:jvcCr")) != EOF)
+    while ((c = getopt (argc, argv, "hd:b:f:s:A:a:juvcCr")) != EOF)
         switch (c)
         {
         case 'r':
@@ -183,6 +185,9 @@ int main(int argc, char **argv)
             break;
         case 'j':
             detectchain=true;
+            break;
+        case 'u':
+            read_dna = true;
             break;
         case 'd':
             desc=(char*)malloc(strlen(optarg)+1);
@@ -254,7 +259,7 @@ int main(int argc, char **argv)
         }
 
     }
-    else if( !cFpga_fn && !displaystatus && !detectchain && !reconfigure)
+    else if( !cFpga_fn && !displaystatus && !detectchain && !read_dna && !reconfigure)
     {
         //no option specified
         fprintf(stderr, "No or ambiguous options specified.\n");
@@ -303,6 +308,11 @@ int main(int argc, char **argv)
             alg.getStatusRegister();
         return 0;
     }
+        if(read_dna)
+        {
+            alg.Read_DNA();
+            return 0;
+        }
     try
     {
         if(spiflash)

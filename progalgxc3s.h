@@ -53,6 +53,7 @@ class ProgAlgXC3S
   int array_transfer_len;
   void flow_enable();
   void flow_disable();
+  unsigned long int reverse_bits_recursively(unsigned long int, unsigned int);
   void flow_array_program(BitFile &file);
   void flow_program_legacy(BitFile &file);
  public:
@@ -61,6 +62,7 @@ class ProgAlgXC3S
   void getStatusRegister();
   ProgAlgXC3S(Jtag &j, IOBase &i, int family);
   void array_program(BitFile &file);
+  void Read_DNA();
 };
 
 
