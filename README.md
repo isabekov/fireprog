@@ -1,11 +1,33 @@
 # fireprog: a Xilinx Spartan 3 configuration software
 Fireprog is a utility which can program Xilinx Spartan 3 FPGAs via FT232H-based USB-to-JTAG adapter.
-It is based on fpgaprog and Papilio-Prog, to which support for Micron M25PE10 SPI flash was added.
+It is based on *fpgaprog*, *Papilio-Prog*, *xc3sprog* to which support for Micron M25PE10 SPI flash was added.
 Fireprog is used to configure Prometheus FPGA boards.
 
 Copyleft (C) Altynbek Isabekov, Onurhan Öztürk
 
 License:  GNU General Public License v2
+
+
+
+## Usage
+
+In order to program the Prometheus board, plug it in the USB port, Windows OS should recognize it as a USB-to-Serial (RS232) converter and associate it with the libftd2xx driver.
+Now you can run "fireprog.exe" from the command line and supply the configuration bit-file.
+
+Configuring FPGA with a bit-stream Circuit.bit:
+
+    ./fireprog -v -f Circuit.bit
+
+Configuring SPI Flash memory with a bit-stream Circuit.bit (mediator bscan_spi.bit is required):
+
+    ./fireprog -v -f Circuit.bit -b bscan_spi.bit -r
+
+The last switch "-r" triggers reconfiguration of the FPGA.
+
+On Windows, command options are exactly the same:
+
+![FPGA](Screenshots/fireprog_uploading_fpga.png "Configuring FPGA with a bit-stream")
+![FLASH](Screenshots/fireprog_uploading_flash.png "Configuring SPI flash with a bit-stream")
 
 ## Compilation on Linux
 
@@ -28,11 +50,17 @@ Then download the x64 version of the "CDM v2.12.24 WHQL Certified.zip" driver
 from http://www.ftdichip.com/Drivers/D2XX.htm and unzip it into "libftd2xx" folder, which is at the same hierarchy level as "fireprog".
 
 	├── fireprog
-	│   ├── bitfile.cpp
-	│   ├── bitfile.h
-	│   │...
-	│   ├── tools.cpp
-	│   └── tools.h
+	│   ├── Makefile
+	│   ├── ...
+	│   ├── Makefile.MinGW64Static
+	│   ├── README.md
+	│   ├── Screenshots
+	│   └── src
+	│       ├── bitfile.cpp
+	│       ├── bitfile.h
+	│       ├── ...
+	│       ├── tools.cpp
+	│       └── tools.h
 	│
 	├── libftd2xx
 	│   ├── amd64
@@ -61,7 +89,7 @@ Depending on the architecture and linking type, one of the following commands sh
 	make -f Makefile.MinGW64Dynamic clean
 	make -f Makefile.MinGW64Dynamic
 
-Dynamically linked executables require some libraries from the MinGW cross-compiler. Putting these libraries in the same folder where "fireprog.exe" resides, allows execution without errors:
+Dynamically linked executables require some libraries from the MinGW cross-compiler. Putting these libraries in the same folder where "fireprog.exe" resides, allows execution without errors, e.g.:
 
 	fireprog-win32-dynamic
 	├── fireprog.exe
@@ -141,11 +169,17 @@ This is needed to **enforce static linking**, so that static library *libftd2xx.
 The hierarchy of the folders should look like this:
 
 	├── fireprog
-	│   ├── bitfile.cpp
-	│   ├── bitfile.h
-	│   │...
-	│   ├── tools.cpp
-	│   └── tools.h
+	│   ├── Makefile
+	│   ├── ...
+	│   ├── Makefile.MinGW64Static
+	│   ├── README.md
+	│   ├── Screenshots
+	│   └── src
+	│       ├── bitfile.cpp
+	│       ├── bitfile.h
+	│       ├── ...
+	│       ├── tools.cpp
+	│       └── tools.h
 	│
 	├── libftd2xx
 	│   ├── D2XX
@@ -164,7 +198,7 @@ The corresponding Makefile is written according to this directory structure.
 Now compile the "fireprog":
 
     cd <path of the fireprog repository>
-    make -f Makefile.MacOS
+    make -f Makefile.MacOS_libftd2xx
 
 Check the output binary:
 
@@ -180,24 +214,3 @@ The output executable should be statically linked with no dynamic dependencies s
 		/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1253.0.0)
 		/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1225.1.1)
 
-
-
-## Usage
-
-In order to program the Prometheus board, plug it in the USB port, Windows OS should recognize it as a USB-to-Serial (RS232) converter and associate it with the libftd2xx driver.
-Now you can run "fireprog.exe" from the command line and supply the configuration bit-file.
-
-Configuring FPGA with a bit-stream Circuit.bit:
-
-    ./fireprog -v -f Circuit.bit
-
-Configuring SPI Flash memory with a bit-stream Circuit.bit (mediator bscan_spi.bit is required):
-
-    ./fireprog -v -f Circuit.bit -b bscan_spi.bit -r
-
-The last switch "-r" triggers reconfiguration of the FPGA.
-
-On Windows, command options are exactly the same:
-
-![FPGA](fireprog_uploading_fpga.png "Configuring FPGA with a bit-stream")
-![FLASH](fireprog_uploading_flash.png "Configuring SPI flash with a bit-stream")

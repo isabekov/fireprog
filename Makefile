@@ -1,40 +1,19 @@
-GCC           = g++ -I.
-DEFINES       =
-CPPFLAGS      = -g -Wall -O2 -Wnarrowing  -std=c++11
-INCPATH       = 
+CXX           = g++
+CXXFLAGS      = -c -g -Wall -O2 -Wnarrowing  -std=c++11
 LINK          = g++
-LFLAGS        = -g -O2
-LIBS          = -L. -lftdi -lusb
+LFLAGS        = -g -O2 -v
+LIBS          = -lftdi
+VPATH         = src
+SRC_FILES     = butterfly.c jtag.c iobase.c ioftdi.c bitfile.c tools.c devicedb.c progalgspi.c progalgxc3s.c
+OBJ_FILES     = $(patsubst %.c, %.o, $(addprefix $(VPATH)/, $(SRC_FILES)))
+DEP_FILES     = $(OBJ_FILES:.o=.d)
 
-fireprog: butterfly.o jtag.o iobase.o ioftdi.o bitfile.o tools.o devicedb.o progalgspi.o progalgxc3s.o
-	$(LINK) $(LIBS) $^ -o $@
+fireprog: $(OBJ_FILES)
+	$(LINK) $(LFLAGS) $(LIBS) $^ -o $@
 
-butterfly.o: butterfly.cpp io_exception.h jtag.h ioftdi.h devicedb.h progalgxc3s.h progalgspi.h bitfile.h
-	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o butterfly.o butterfly.cpp
-  
-bitfile.o: bitfile.cpp bitfile.h
-	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o bitfile.o bitfile.cpp
-
-ioftdi.o: ioftdi.cpp ioftdi.h io_exception.h
-	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o ioftdi.o ioftdi.cpp
-
-jtag.o: jtag.cpp jtag.h
-	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o jtag.o jtag.cpp
-
-iobase.o: iobase.cpp iobase.h
-	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o iobase.o iobase.cpp
-
-devicedb.o: devicedb.cpp devicedb.h devlist.h
-	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o devicedb.o devicedb.cpp
-
-tools.o: tools.cpp tools.h config.h
-	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o tools.o tools.cpp
-
-progalgxc3s.o: progalgxc3s.cpp progalgxc3s.h
-	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o progalgxc3s.o progalgxc3s.cpp
-
-progalgspi.o: progalgspi.cpp progalgspi.h config.h
-	$(GCC) -c $(CPPFLAGS) $(INCPATH) -o progalgspi.o progalgspi.cpp
+$(OBJ_FILES): %.o: %.cpp
+	$(CXX) $(CXXFLAGS) -MMD -MF $(patsubst %.o,%.d,$@) -o $@ $<
 
 clean:
-	rm -rf *.o fireprog
+	rm -f $(DEP_FILES) $(OBJ_FILES) fireprog
+

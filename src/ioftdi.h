@@ -31,7 +31,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
 	#define USE_FTD2XX
 #else
 	#include <ftdi.h>
-	#include <usb.h>
 #endif
 
 #include "iobase.h"
