@@ -27,8 +27,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
 	#include "ftd2xx.h"
 	#define USE_FTD2XX
 #elif defined(__APPLE__)
-	#include "ftd2xx.h"
-	#define USE_FTD2XX
+    #ifdef USE_FTDI
+        #include "ftdi.h"
+    #else
+        #include "ftd2xx.h"
+        #define USE_FTD2XX
+    #endif
 #else
 	#include <ftdi.h>
 #endif

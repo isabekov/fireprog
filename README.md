@@ -115,11 +115,11 @@ Install OSXCross toolchain from source to an easily accessable directory (e.g. "
 
 Pack the SDK on MacOS on a real Apple computer and put the packed achive "MacOSX10.11.sdk.tar.xz" to "/opt/osxcross/tarballs".
 In this example, the MacOS cross-compiler is built for **OS X 10.11 El Capitan**, *Darwin version 15*.
-Check compatibility between SDK versions and corresdponding targets in:
+Check compatibility between SDK versions and corresponding targets in:
 
     /opt/osxcross/tools/osxcross-macports
 
-If *clang* compiler is already installed, there is no need to build it. If not, then proceed as described in 
+If *clang* compiler is already installed, there is no need to build it. If not, then proceed as described in
 
     /opt/osxcross/README.md
 
@@ -147,6 +147,7 @@ Check the cross-compiler:
       Thread model: posix
       gcc version 9.2.0 (GCC)
 
+### Cross-compilation on Linux for MacOS using official libftd2xx library
 Once the toolchain is ready, download and unpack FTD2XX drivers for MacOS:
 
     cd <path of the "fireprog" repository>
@@ -159,7 +160,7 @@ Once the toolchain is ready, download and unpack FTD2XX drivers for MacOS:
     7z x D2XX1.4.16.dmg release/D2XX
     mv release/D2XX .
 
-Rename the shared library file by adding some prefix:
+Rename the shared library file so that its name does not start with "lib":
 
     mv D2XX/libftd2xx.1.4.16.dylib D2XX/backup_libftd2xx.1.4.16.dylib
     cd ..
@@ -214,3 +215,118 @@ The output executable should be statically linked with no dynamic dependencies s
 		/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1253.0.0)
 		/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1225.1.1)
 
+### Cross-compilation on Linux for MacOS using libftdi and libusb libraries
+Download and unpack *libusb* library:
+
+    cd <path of the "fireprog" repository>
+    # Change one directory up (important!)
+    cd ..
+    wget -vc https://github.com/libusb/libusb/releases/download/v1.0.23/libusb-1.0.23.tar.bz2
+     # Unpack archive
+    tar -xvf libusb-1.0.23.tar.bz2
+
+Create a local installation directory:
+
+    cd libusb-1.0.23
+    mkdir prefix
+    cd ..
+
+Configure the build environment, compile and install the library locally:
+
+    ./configure --host=x86_64-apple-darwin15 --prefix="$(pwd)/prefix" CC=x86_64-apple-darwin15-clang
+    make
+    make install
+
+Check for newly created library files:
+
+    tree ./prefix/
+    ./prefix
+    ├── include
+    │   └── libusb-1.0
+    │       └── libusb.h
+    └── lib
+        ├── libusb-1.0.0.dylib
+        ├── libusb-1.0.a
+        ├── libusb-1.0.dylib -> libusb-1.0.0.dylib
+        ├── libusb-1.0.la
+        └── pkgconfig
+            └── libusb-1.0.pc
+
+Rename the shared library files so that their names do not start with "lib":
+
+    mv ./prefix/lib/libusb-1.0.0.dylib ./prefix/lib/backup_libusb-1.0.0.dylib
+    mv ./prefix/lib/libusb-1.0.dylib ./prefix/lib/backup_libusb-1.0.dylib
+
+This is needed to **enforce static linking**, so that static library *libusb-1.0.a* instead of *libusb-1.0.dylib* is used by the linker.
+
+Download and unpack *libftdi* library:
+
+    cd <path of the "fireprog" repository>
+    # Change one directory up (important!)
+    cd ..
+    wget -vc https://www.intra2net.com/en/developer/libftdi/download/libftdi1-1.5.tar.bz2
+     # Unpack archive
+    tar -xvf libftdi1-1.5.tar.bz2
+    cd libftdi1-1.5
+
+There are only two files which need to be compiled, configuring CMake to support cross-compilation is more difficult than compiling these two files.
+
+In order to create header *ftdi_version_i.h* from template *ftdi_version_i.h.in* manually, one needs to learn the versions of the library:
+
+    MAJOR_VERSION=`grep -P -o "(?<=set\(MAJOR_VERSION)\s*\d+(?=\))" CMakeLists.txt`
+    echo ${MAJOR_VERSION}
+      1
+
+    MINOR_VERSION=`grep -P -o "(?<=set\(MINOR_VERSION)\s*\d+(?=\))" CMakeLists.txt`
+    echo ${MINOR_VERSION}
+      5
+
+    grep -P -o "(?<=set\(VERSION_STRING)\s*.+(?=\))" CMakeLists.txt
+       ${MAJOR_VERSION}.${MINOR_VERSION}
+
+    VERSION_STRING_TEMPLATE=`grep -P -o "(?<=set\(VERSION_STRING)\s*.+(?=\))" CMakeLists.txt`
+    VERSION_STRING=$(eval echo ${VERSION_STRING_TEMPLATE}|sed "s/\s//g")
+    echo $VERSION_STRING
+     1.5
+
+After setting MAJOR_VERSION, MINOR_VERSION, VERSION_STRING environment variables, create *ftdi_version_i.h* from the template:
+
+    cd src
+    sed "s/@MAJOR_VERSION@/${MAJOR_VERSION}/g" ftdi_version_i.h.in > ftdi_version_i.h
+    sed -i "s/@MINOR_VERSION@/${MINOR_VERSION}/g" ftdi_version_i.h
+    sed -i "s/@VERSION_STRING@/${VERSION_STRING}/g" ftdi_version_i.h
+    sed -i "s/@SNAPSHOT_VERSION@/unknown/g" ftdi_version_i.h
+
+Compile files:
+
+    x86_64-apple-darwin15-g++ -c ftdi.c -o ftdi.o -I ../../libusb-1.0.23/libusb/ -I .
+    x86_64-apple-darwin15-g++ -c ftdi_stream.c -o ftdi_stream.o -I ../../libusb-1.0.23/libusb/ -I . -Wno-narrowing -fpermissive
+
+Bind object files into a static library:
+
+    x86_64-apple-darwin15-libtool -static ftdi.o ftdi_stream.o -o libftdi1.a
+
+The corresponding Makefile is written according to this directory structure:
+
+	├── fireprog
+	├── libftdi1-1.5
+	└── libusb-1.0.23
+
+Now compile the "fireprog":
+
+    cd <path of the fireprog repository>
+    make -f Makefile.MacOS_libftdi
+
+Check the output binary:
+
+    file fireprog
+      fireprog: Mach-O 64-bit x86_64 executable, flags:<NOUNDEFS|DYLDLINK|TWOLEVEL|WEAK_DEFINES|BINDS_TO_WEAK|PIE>
+
+The output executable should be statically linked with no dynamic dependencies such as libftdi or libusb:
+
+    x86_64-apple-darwin15-otool -L fireprog
+	fireprog:
+		/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+		/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)
+		/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1253.0.0)
+		/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1225.1.1)

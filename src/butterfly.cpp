@@ -184,6 +184,7 @@ int main(int argc, char **argv)
             verbose=true;
             break;
         case 'j':
+			printf("DETECT JTAG CHAIN\n\n");
             detectchain=true;
             break;
         case 'u':
@@ -364,6 +365,7 @@ int main(int argc, char **argv)
                 alg.Reconfigure();
                 return 0;
             }
+			printf("WE ARE HERE BEFORE PROGRAMMING!!!\n");
             BitFile fpga_bit;
             fpga_bit.readFile(cFpga_fn);
 
