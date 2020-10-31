@@ -1,0 +1,19 @@
+CXX           = x86_64-apple-darwin15-g++
+CXXFLAGS      = -c -g  -O2 -Wno-narrowing -std=c++98 -mmacosx-version-min=10.8 -v -DUSE_FTDI
+INCPATH       = -I ../libftdi1-1.5/src
+LINK          = x86_64-apple-darwin15-g++
+LFLAGS        = -g -O2 -v -static-libgcc -mmacosx-version-min=10.8 -lobjc -framework IOKit -framework CoreFoundation
+LIBS          = -lftdi1 -lusb-1.0  -L ../libftdi1-1.5/src -L ../libusb-1.0.23/prefix/lib
+VPATH         = src
+SRC_FILES     = butterfly.c jtag.c iobase.c ioftdi.c bitfile.c tools.c devicedb.c progalgspi.c progalgxc3s.c
+OBJ_FILES     = $(patsubst %.c, %.o, $(addprefix $(VPATH)/, $(SRC_FILES)))
+DEP_FILES     = $(OBJ_FILES:.o=.d)
+
+fireprog: $(OBJ_FILES)
+	$(LINK) $(LFLAGS) $(LIBS) $^ -o $@
+
+$(OBJ_FILES): %.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(INCPATH) -MMD -MF $(patsubst %.o,%.d,$@) -o $@ $<
+
+clean:
+	rm -f $ $(OBJ_FILES) $(DEP_FILES) fireprog
