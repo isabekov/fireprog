@@ -7,6 +7,14 @@ Copyleft (C) Altynbek Isabekov, Onurhan Öztürk
 
 License:  GNU General Public License v2
 
+### Table of Contents
+
+- [Usage](#usage)
+- [Compilation on Linux](#compilation-on-linux)
+- [Cross-compilation on Linux for Windows](#cross-compilation-on-linux-for-windows)
+- [Cross-compilation on Linux for MacOS](#cross-compilation-on-linux-for-macos)
+    - [using official libftd2xx library](#cross-compilation-on-linux-for-macos-using-official-libftd2xx-library)
+    - [using libftdi and libusb libraries](#cross-compilation-on-linux-for-macos-using-libftdi-and-libusb-libraries)
 
 
 ## Usage
