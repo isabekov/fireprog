@@ -7,6 +7,8 @@ Copyleft (C) Altynbek Isabekov, Onurhan Öztürk
 
 License:  GNU General Public License v2
 
+![Prometheus FPGA](http://www.isabekov.pro/prometheus-fpga/static/img/Prometheus_FPGA_Board.jpg "Prometheus FPGA")
+
 ### Table of Contents
 
 - [Usage](#usage)
